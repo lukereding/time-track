@@ -3,20 +3,36 @@ package main
 import (
 	"bufio"
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
 func main() {
+
+	// define struct for the projects
+	type Project struct {
+		Name string
+	}
 
 	// define the log file
 	// get $HOME
 	Home := os.Getenv("HOME")
 	logFilePath := Home + "/.time-track.csv"
+
+	// define the config file
+	configFilePath := Home + "/.time-track"
 
 	// create a log file if it doesn't exist
 	_, err := os.Stat(logFilePath)
@@ -27,8 +43,61 @@ func main() {
 		if err != nil {
 			panic("can't create the file 😥")
 		}
+		fmt.Println("created ", logFilePath)
+	}
 
-		fmt.Println("created", logFilePath)
+	// create config file if it doesn't exist
+	_, err = os.Stat(configFilePath)
+	if os.IsNotExist(err) {
+		var _, err = os.Create(configFilePath)
+		if err != nil {
+			panic("can't create the file 😥")
+		}
+		fmt.Println("created ", configFilePath)
+	}
+
+	// parse arguments
+	addProjectPtr := flag.String("add-project", "personal", "a string")
+	rmProjectPtr := flag.String("rm-project", "", "a string")
+	flag.Parse()
+
+	if *addProjectPtr != "personal" {
+
+		f, err := os.OpenFile(configFilePath, os.O_APPEND|os.O_WRONLY, 0600)
+
+		if err != nil {
+			panic(err)
+		}
+
+		defer f.Close()
+
+		if _, err = f.WriteString(*addProjectPtr); err != nil {
+			panic(err)
+		}
+
+		os.Exit(0)
+	}
+
+	if *rmProjectPtr != "" {
+
+		input, err := ioutil.ReadFile(configFilePath)
+		check(err)
+		// get the lines from the file
+		lines := strings.Split(string(input), "\n")
+
+		// loop through the line, getting rid of the project to remove
+		for i, line := range lines {
+			if strings.Contains(line, *rmProjectPtr) {
+				fmt.Printf("removing project %v", *rmProjectPtr)
+				lines[i] = ""
+			}
+		}
+		// write results back to the config file
+		output := strings.Join(lines, "\n")
+		err = ioutil.WriteFile(configFilePath, []byte(output), 0644)
+		check(err)
+
+		os.Exit(0)
 
 	}
 
