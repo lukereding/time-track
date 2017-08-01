@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/csv"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/dixonwille/wmenu"
+	"github.com/spf13/pflag"
 )
 
 func check(e error) {
@@ -58,12 +58,12 @@ func main() {
 	}
 
 	// parse arguments
-	addProjectPtr := flag.String("add-project", "personal", "a string")
-	rmProjectPtr := flag.String("rm-project", "", "a string")
-	flag.Parse()
+	addProjectPtr := pflag.String("add-project", "personal", "a string")
+	rmProjectPtr := pflag.String("rm-project", "", "a string")
+	pflag.Parse()
 
 	// if the user specified something other than the default to addProject
-	if *addProjectPtr != "personal" {
+	if string(*addProjectPtr) != "personal" {
 
 		f, err := os.OpenFile(configFilePath, os.O_APPEND|os.O_WRONLY, 0600)
 
@@ -77,7 +77,7 @@ func main() {
 			panic(err)
 		}
 
-		fmt.Printf("added project %v", *addProjectPtr)
+		fmt.Printf("added project :: %v\n", *addProjectPtr)
 
 		os.Exit(0)
 	}
@@ -94,7 +94,7 @@ func main() {
 		// loop through the line, getting rid of the project to remove
 		for i, line := range lines {
 			if strings.Contains(line, *rmProjectPtr) {
-				fmt.Printf("removing project %v", *rmProjectPtr)
+				fmt.Printf("removing project :: %v\n", *rmProjectPtr)
 				lines[i] = ""
 			}
 		}
@@ -163,11 +163,9 @@ func main() {
 	}
 
 	// present available projects to user
-	fmt.Printf("What are you working on? ▽ ")
-
 	var chosenProject string
 
-	menu := wmenu.NewMenu("What are you working on? ▽ ")
+	menu := wmenu.NewMenu("\n▽ What are you working on? ")
 	menu.Action(func(opts []wmenu.Opt) error {
 		chosenProject = opts[0].Text
 		return nil
@@ -181,15 +179,6 @@ func main() {
 	check(err)
 	fmt.Println(chosenProject)
 
-	// fmt.Println(records)
-
-	// readerStdin := bufio.NewReader(os.Stdin)
-	fmt.Printf("▽ What are you working on?")
-	// text, err := readerStdin.ReadString('\n')
-	// // trim whitespace
-	// trimmedText := strings.TrimSpace(text)
-	// check(err)
-
 	// get the time
 	// currentTime := time.Now().Local().Format("2 Jan 2006 15:04")
 	currentTime := time.Now().Unix()
@@ -197,7 +186,6 @@ func main() {
 	// append to slice
 	newRow := []string{strconv.Itoa(len(stuff)), strconv.Itoa(int(currentTime)), chosenProject}
 	stuff = append(stuff, newRow)
-	fmt.Println(stuff)
 
 	// close the log connection
 	log.Close()
