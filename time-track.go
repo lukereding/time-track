@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"encoding/csv"
 	"flag"
 	"fmt"
@@ -11,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/dixonwille/wmenu"
 )
 
 func check(e error) {
@@ -61,6 +62,7 @@ func main() {
 	rmProjectPtr := flag.String("rm-project", "", "a string")
 	flag.Parse()
 
+	// if the user specified something other than the default to addProject
 	if *addProjectPtr != "personal" {
 
 		f, err := os.OpenFile(configFilePath, os.O_APPEND|os.O_WRONLY, 0600)
@@ -71,17 +73,21 @@ func main() {
 
 		defer f.Close()
 
-		if _, err = f.WriteString(*addProjectPtr); err != nil {
+		if _, err = f.WriteString(*addProjectPtr + "\n"); err != nil {
 			panic(err)
 		}
+
+		fmt.Printf("added project %v", *addProjectPtr)
 
 		os.Exit(0)
 	}
 
+	// if the user specified something other than the default to rmProject
 	if *rmProjectPtr != "" {
 
 		input, err := ioutil.ReadFile(configFilePath)
 		check(err)
+
 		// get the lines from the file
 		lines := strings.Split(string(input), "\n")
 
@@ -92,6 +98,7 @@ func main() {
 				lines[i] = ""
 			}
 		}
+
 		// write results back to the config file
 		output := strings.Join(lines, "\n")
 		err = ioutil.WriteFile(configFilePath, []byte(output), 0644)
@@ -140,38 +147,59 @@ func main() {
 		stuff = append(stuff, thisRow)
 	}
 
-	fmt.Println("stuff: ", stuff)
-	// fmt.Println("project: ", project)
+	// get all available projects from config file
+	input, err := ioutil.ReadFile(configFilePath)
+	check(err)
 
-	// records, err := reader.ReadAll()
-	// if err != nil {
-	// 	panic("could not read in the csv file 😮")
-	// }
+	// get the lines from the file
+	lines := strings.Split(string(input), "\n")
+
+	// define a slice to hold the projects
+	var currentProjects []string
+
+	// loop through the lines
+	for _, line := range lines {
+		currentProjects = append(currentProjects, line)
+	}
+
+	// present available projects to user
+	fmt.Printf("What are you working on? ▽ ")
+
+	var chosenProject string
+
+	menu := wmenu.NewMenu("What are you working on? ▽ ")
+	menu.Action(func(opts []wmenu.Opt) error {
+		chosenProject = opts[0].Text
+		return nil
+	})
+	for _, line := range currentProjects {
+		if line != "" {
+			menu.Option(line, nil, false, nil)
+		}
+	}
+	err = menu.Run()
+	check(err)
+	fmt.Println(chosenProject)
 
 	// fmt.Println(records)
 
-	readerStdin := bufio.NewReader(os.Stdin)
-	fmt.Printf("What are you working on? ¶ ")
-	text, err := readerStdin.ReadString('\n')
-	// trim whitespace
-	trimmedText := strings.TrimSpace(text)
-
-	if err != nil {
-		panic("could not read from stdin")
-	}
+	// readerStdin := bufio.NewReader(os.Stdin)
+	fmt.Printf("▽ What are you working on?")
+	// text, err := readerStdin.ReadString('\n')
+	// // trim whitespace
+	// trimmedText := strings.TrimSpace(text)
+	// check(err)
 
 	// get the time
-	currentTime := time.Now().Local().Format("2 Jan 2006 15:04")
+	// currentTime := time.Now().Local().Format("2 Jan 2006 15:04")
+	currentTime := time.Now().Unix()
 
 	// append to slice
-	newRow := []string{strconv.Itoa(len(stuff)), currentTime, trimmedText}
+	newRow := []string{strconv.Itoa(len(stuff)), strconv.Itoa(int(currentTime)), chosenProject}
 	stuff = append(stuff, newRow)
 	fmt.Println(stuff)
 
-	// write the new csv
-
-	// working here
-	// try closing 'log' then reopening it with write permissions with OpenFile
+	// close the log connection
 	log.Close()
 
 	// reopen the log file
