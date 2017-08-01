@@ -1,4 +1,4 @@
-# time tracker
+# time-track
 
 I wanted a tool that I can use to keep track of my time that I didn't have to remember to use.
 
@@ -21,14 +21,15 @@ This project is part of my experience learning Go, which is why it's terribly wr
 3
 ```
 
-You type in the number corresponding to what you're doing and move on with you life.
+You type in the number corresponding to what you're doing and move on with your life.
 
 ### main commands
 
-There are projects. These are things you are working on. You can add and remove projects.
+There are projects. These are things you are working on. You can add and remove projects:
 
 `time-track --add-project "some project"` : add projects you're working on.
 `time-track --rm-project "some project"` : remove some project you're done with or want to forget about.
+
 `time-track` : meant to be run as a `cron` job. To run every 15 minutes, use something like
 
 ```bash
@@ -53,3 +54,4 @@ There are projects. These are things you are working on. You can add and remove 
 - [X] flag to `time-track` to remove activities
 - [ ] don't store repeated projects
 - [ ] write functions (!) to simplify code
+- [ ] add command line option for `--report` that summarizes the top job for the week, month, etc.
