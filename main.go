@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/lukereding/time-track/report"
 
 	"github.com/dixonwille/wmenu"
 	"github.com/spf13/pflag"
@@ -16,7 +19,7 @@ import (
 
 func check(e error) {
 	if e != nil {
-		panic(e)
+		log.Fatal(e)
 	}
 }
 
@@ -58,8 +61,9 @@ func main() {
 	}
 
 	// parse arguments
-	addProjectPtr := pflag.String("add-project", "personal", "a string")
-	rmProjectPtr := pflag.String("rm-project", "", "a string")
+	addProjectPtr := pflag.String("add-project", "personal", "quoted name of project to add")
+	rmProjectPtr := pflag.String("rm-project", "", "quoted name of project to remove")
+	reportPtr := pflag.Bool("report", false, "generate report from the last week?")
 	pflag.Parse()
 
 	// if the user specified something other than the default to addProject
@@ -106,6 +110,12 @@ func main() {
 
 		os.Exit(0)
 
+	}
+
+	// is the user just wants a report
+	if *reportPtr == true {
+		report.Report()
+		os.Exit(0)
 	}
 
 	// read in the csv file
