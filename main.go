@@ -172,6 +172,10 @@ func main() {
 		currentProjects = append(currentProjects, line)
 	}
 
+	// get the time
+	// currentTime := time.Now().Local().Format("2 Jan 2006 15:04")
+	currentTime := time.Now().Unix()
+
 	// present available projects to user
 	var chosenProject string
 
@@ -188,10 +192,6 @@ func main() {
 	err = menu.Run()
 	check(err)
 	fmt.Println(chosenProject)
-
-	// get the time
-	// currentTime := time.Now().Local().Format("2 Jan 2006 15:04")
-	currentTime := time.Now().Unix()
 
 	// append to slice
 	newRow := []string{strconv.Itoa(len(stuff)), strconv.Itoa(int(currentTime)), chosenProject}
